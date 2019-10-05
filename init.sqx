@@ -1,0 +1,25 @@
+using BrokenArrow.Client;
+using BrokenArrow.Server;
+
+gServer = classNull;
+gClient = classNull;
+
+// Initialize the server
+
+"ENG_runwayMarker" setMarkerAlpha 0;
+
+if (isServer) then {
+	call compile preprocessFileLineNumbers "Server\Classes\Server.sqx";
+	
+	gServer = new Server;
+};
+
+// Initialize the client
+
+if (!isDedicated) then {
+	waitUntil { player == player };
+	call compile preprocessFileLineNumbers "Client\Classes\Client.sqx";
+	call compile preprocessFileLineNumbers "Client\EventHandlers.sqx";
+	
+	gClient = new Client;
+};

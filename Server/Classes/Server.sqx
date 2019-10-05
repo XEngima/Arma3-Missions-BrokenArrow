@@ -1,0 +1,107 @@
+/*
+ * Name:	Server
+ * Date:	2017-08-15
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Models the network server.
+ */
+namespace BrokenArrow.Server
+{
+	public class Server
+	{
+		public constructor {
+			call _self.HideMarkers;
+			[] spawn _self.ManageTasksAndEnd;
+			[] spawn _self.ManageDetectionAndIntensity;
+		};
+		
+		private method ManageDetectionAndIntensity {
+			waitUntil { !isNil "eng_detected" };
+			
+			while { true } do {
+				{
+					if (random 100 > 75) then {
+						_x reveal selectRandom (call BIS_fnc_listPlayers);
+					};
+				} foreach allUnits;
+				
+				sleep (5 * 60);
+			};
+		};
+		
+		// Checks for task changes, and updates the tasks when needed.
+		private method ManageTasksAndEnd {
+			private _taskKillComplete = false;
+			private _taskInvestigateComplete = false;
+			private _taskReturnComplete = false;
+			private _leftBase = false;
+		
+			while { true } do {
+				if (!_taskKillComplete) then {
+					if (!alive eng_theSnake) then {
+						["EliminateTheSnake", "SUCCEEDED"] call ENGTASKS_SetTaskState;
+						_taskKillComplete = true;
+					};
+				};
+			
+				if (!_taskInvestigateComplete) then {
+					{
+						if (_x inArea "eng_warehouseMarker") then {
+							["CheckWarehouse", "SUCCEEDED"] call ENGTASKS_SetTaskState;
+							_taskInvestigateComplete = true;
+						};
+					} foreach allPlayers;
+				};
+				
+				if (!_taskReturnComplete) then {
+					if (_leftBase) then {
+						if ({(vehicle _x) distance2D (getMarkerPos "eng_baseMarker") < 300 && ((getPosATL _x) select 2) < 1 } count (call BIS_fnc_listPlayers) > 0) then {
+							if ({!alive _x} count (call BIS_fnc_listPlayers) == 0) then {
+								["ReturnToBase", "SUCCEEDED"] call ENGTASKS_SetTaskState;
+							}
+							else {
+								["ReturnToBase", "FAILED"] call ENGTASKS_SetTaskState;
+							};
+							_taskReturnComplete = true;
+							
+							if (!_taskKillComplete) then {
+								["EliminateTheSnake", "FAILED"] call ENGTASKS_SetTaskState;
+								_taskKillComplete = true;
+							};
+							
+							if (!_taskInvestigateComplete) then {
+								["CheckWarehouse", "CANCELED"] call ENGTASKS_SetTaskState;
+								_taskInvestigateComplete = true;
+							};
+							
+							// Send mission completed to all other machines
+							eng_missionCompletedStatus = !alive eng_theSnake;
+							publicVariable "eng_missionCompletedStatus";
+							
+							// If this machine has a client, end mission for that too.
+							if (!isNull gClient) then {
+								[eng_missionCompletedStatus] call gClient.EndMission;
+							};
+						};
+					}
+					else // if (!_leftBase)
+					{
+						if ({ (vehicle _x) distance2D getMarkerPos "eng_baseMarker" > 600 } count (call BIS_fnc_listPlayers) > 0) then {
+							_leftBase = true;
+						};
+					};
+				};
+				
+				sleep 1;
+			};
+		};
+		
+		// Hide all markers that should be hidden in the mission.
+		private method HideMarkers {
+			"eng_warehouseMarker" setMarkerAlpha 0;
+			"ENG_runwayMarker" setMarkerAlpha 0;
+		};
+	};
+};

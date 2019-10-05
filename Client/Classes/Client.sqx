@@ -1,0 +1,48 @@
+/*
+ * Name:	Client
+ * Date:	2017-08-15
+ * Version: 1.0
+ * Author:  Engima
+ *
+ * Description:
+ * Models a network client.
+ */
+namespace BrokenArrow.Client
+{
+	// Creates a Client object and initializes the clinent.
+	public class Client
+	{
+		public constructor {
+			call _self.AddBriefing;
+			[true] call _self.SetCaptive;
+		};
+		
+		// Adds player briefing.
+		public method AddBriefing {
+			player createDiaryRecord ["Diary", ["Mission Mechanics", "You are safe until you exit the plane for the first time. From that moment the enemy will take out out if you are spotted."]];
+			player createDiaryRecord ["Diary", ["Orders", "You are <marker name=""eng_baseMarker"">here</marker> because of your knowledge in how to fly a plane. Fly to the small island's <marker name=""eng_airbaseMarker"">airfield</marker> with the civilian sports planes, giving the impression that you are the pilots who left. Sneak out of the airplanes in the cover of the evening light. Kill the enemy officer code name 'The Snake', and if possible, investigate what is in the <marker name=""eng_warehouseMarker"">warehouse</marker>. Then return to <marker name=""eng_baseMarker"">base</marker>."]];
+			player createDiaryRecord ["Diary", ["Situation", "CSAT is on the move, and after a surprise agression they invaded the <marker name=""ENG_islandMarker"">small island</marker> north west of the main land. The island contains an <marker name=""eng_airbaseMarker"">airfield</marker>, so there is no disussion of what their intentions may be, and their current presence is putting NATO under great pressure. The <marker name=""eng_airbaseMarker"">airfield</marker> has in recent years been the home of a civilian flight sports club that has not yet been deported. Two of their planes just landed at our <marker name=""eng_baseMarker"">airbase</marker> for less than an hour ago. The two pilots turned themselves and their planes over. We don't have much of our military ready to strike back with force, but we will use the situation for a surprise action anyway. The pilots also gave us information that their brigade leader is currently in a <marker name=""eng_snakeMarker"">house</marker> on the island. We have also seen a lot of activity around the harbor <marker name=""eng_warehouseMarker"">warehouse</marker>, but we don't know what they are doing."]];
+			player createDiaryRecord ["Diary", ["Background", "Despite heavy focus on diplomacy and peaceful agreements, CSAT has continued to threat and increase its military force."]];
+		};
+	
+		// Sets the player's captive state.
+		// _isCaptive (Boolean): true to set captive, false to release captive state.
+		public method SetCaptive {
+			params ["_isCaptive" as Boolean];
+			player setCaptive _isCaptive;
+		};
+		
+		// Waits for 5 seconds and then ends the mission for the current client.
+		// _isVictory (Boolean): Whether it is victory or not.
+		public method EndMission {
+			params ["_isVictory" as Boolean];
+			
+			[_isVictory] spawn {
+				params ["_isVictory"];
+				
+				sleep 5;
+				["END1", _isVictory] call BIS_fnc_endMission;
+			};
+		};
+	};
+};

@@ -1,0 +1,37 @@
+using BrokenArrow.Client;
+
+player addEventHandler ["GetOutMan", {
+	params ["_unit" as Object, "_vehicleSlot" as String, "_vehicle" as Object];
+	
+	[false] call gClient.SetCaptive;
+}];
+
+player addEventHandler ["GetInMan", {
+	params ["_unit" as Object, "_vehicleSlot" as String, "_vehicle" as Object];
+	
+	if (player distance2D getMarkerPos "eng_baseMarker" < 600) then {
+		[true] call gClient.SetCaptive;
+		
+		// While the player is captive, check if inside the runway borders, otherwise, set to
+		// non captive.
+		[] spawn {
+			while { captive player } do {
+				if ((getPosATL vehicle player) select 2 < 2) then {
+					if (player inArea "ENG_islandMarker" && { !(player inArea "ENG_runwayMarker") }) then {
+						[false] call gClient.SetCaptive;
+					};
+				};
+				
+				sleep 3;
+			};
+		};
+	};
+}];
+
+"eng_missionCompletedStatus" addPublicVariableEventHandler {
+	params ["_varName" as String, "_value" as Any];
+
+	if (!isNull gClient) then {
+		[_value] call gClient.EndMission;
+	};
+};
